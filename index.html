@@ -232,25 +232,25 @@ const SECTIONS = [
   { title: "PROBLEM", beats: [
     { n: 5, ts: "3:00", label: "Absolve",
       job: "Absolve them — the belief was installed, not chosen." },
-    { n: "5a", ts: "3:30", label: "Mid-roll CTA",
+    { n: 6, ts: "3:30", label: "Mid-roll CTA",
       job: "Drop the ask here, in context, while trust is highest. Keep it under 20s." },
-    { n: 6, ts: "4:00", label: "Name it",
+    { n: 7, ts: "4:00", label: "Name it",
       job: "Give the pattern a name they can't unsee." },
-    { n: 7, ts: "5:00", label: "What changed",
+    { n: 8, ts: "5:30", label: "What changed",
       job: "Show why the old rule expired. The world moved." },
   ]},
   { title: "SOLUTION", beats: [
-    { n: 8, ts: "6:30", label: "Proof story",
+    { n: 9, ts: "7:00", label: "Proof story",
       job: "One proof, one number, no method. Curiosity, not instruction." },
-    { n: 9, ts: "9:30", label: "Reversal line",
+    { n: 10, ts: "9:30", label: "Reversal line",
       job: "The single inverted line. This is the thumbnail and the LinkedIn post." },
   ]},
   { title: "CTA", beats: [
-    { n: 10, ts: "12:00", label: "Offer again",
+    { n: 11, ts: "10:30", label: "Offer again",
       job: "Restate the offer as the closing ask." },
-    { n: 11, ts: "10:30", label: "Split the room",
+    { n: 12, ts: "11:15", label: "Split the room",
       job: "“Most of you will… A few of you will…”" },
-    { n: 12, ts: "11:30", label: "Point at next",
+    { n: 13, ts: "12:00", label: "Point at next",
       job: "Point at the next belief to shift. Leave the door open." },
   ]},
 ];
@@ -396,14 +396,14 @@ function render() {
     3: 'Promise — <span class="fixed">“In this video I\'ll show you what to do instead.”</span>',
     4: 'Credibility — <span class="const">' + esc(CONSTANTS.credibility) + "</span> + " + v("myFailure"),
     5: 'Absolve — ' + v("belief") + ' <span class="fixed">· came from:</span> ' + v("origin"),
-    "5a": 'Mid-roll CTA — <span class="const">' + esc(CONSTANTS.offer) + '</span> <span class="fixed">(max 20s)</span>',
-    6: 'Name it — ' + conceptName + (cd ? ': <span class="const">' + esc(cd.def) + "</span>" : ""),
-    7: 'What changed — ' + v("whatChanged"),
-    8: 'Proof story — ' + (storyLine() ? '<span class="val">' + esc(storyLine()) + "</span>" : blank) + ' <span class="fixed">(no method)</span>',
-    9: 'Reversal line — “' + v("reversal") + '”',
-    10: 'Offer again — <span class="const">' + esc(CONSTANTS.offer) + '</span>',
-    11: 'Split the room — ' + v("splitRoom"),
-    12: 'Point at next — ' + v("nextVideo"),
+    6: 'Mid-roll CTA — <span class="const">' + esc(CONSTANTS.offer) + '</span> <span class="fixed">(max 20s)</span>',
+    7: 'Name it — ' + conceptName + (cd ? ': <span class="const">' + esc(cd.def) + "</span>" : ""),
+    8: 'What changed — ' + v("whatChanged"),
+    9: 'Proof story — ' + (storyLine() ? '<span class="val">' + esc(storyLine()) + "</span>" : blank) + ' <span class="fixed">(no method)</span>',
+    10: 'Reversal line — “' + v("reversal") + '”',
+    11: 'Offer again — <span class="const">' + esc(CONSTANTS.offer) + '</span>',
+    12: 'Split the room — ' + v("splitRoom"),
+    13: 'Point at next — ' + v("nextVideo"),
   };
 
   let html = "";
@@ -443,18 +443,18 @@ function toMarkdown() {
   L.push("");
   L.push("## PROBLEM");
   L.push("5. Absolve — " + m("belief") + " · came from: " + m("origin"));
-  L.push("5a. Mid-roll CTA — " + CONSTANTS.offer + " (max 20s)");
-  L.push("6. Name it — " + concept + (cd ? ", " + cd.def : ""));
-  L.push("7. What changed — " + m("whatChanged"));
+  L.push("6. Mid-roll CTA — " + CONSTANTS.offer + " (max 20s)");
+  L.push("7. Name it — " + concept + (cd ? ", " + cd.def : ""));
+  L.push("8. What changed — " + m("whatChanged"));
   L.push("");
   L.push("## SOLUTION");
-  L.push("8. Proof story — " + sl + " (number, no method)");
-  L.push('9. Reversal line — "' + m("reversal") + '"');
+  L.push("9. Proof story — " + sl + " (number, no method)");
+  L.push('10. Reversal line — "' + m("reversal") + '"');
   L.push("");
   L.push("## CTA");
-  L.push("10. Offer again — " + CONSTANTS.offer);
-  L.push("11. Split the room — " + m("splitRoom"));
-  L.push("12. Point at next — " + m("nextVideo"));
+  L.push("11. Offer again — " + CONSTANTS.offer);
+  L.push("12. Split the room — " + m("splitRoom"));
+  L.push("13. Point at next — " + m("nextVideo"));
   return L.join("\n");
 }
 
