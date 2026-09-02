@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Script Builder</title>
+<style>
+  /* Geologica via Google Fonts. Works when online; falls back to system sans otherwise.
+     Roca (display) is intentionally skipped — it can't be embedded in a local file. */
+  @import url('https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --navy:  #082C45;
+    --ink:   #1B2F3D;
+    --cream: #F7F4EB;
+    --paper: #FBF8F0;
+    --gold:  #F7D677;
+    --muted: #5E7079;
+    --blank: #C0392B;               /* red for empty blanks */
+    --line:  rgba(8,44,69,.14);
+    --font: "Geologica", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: var(--font);
+    color: var(--ink);
+    background: var(--cream);
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  /* ---- Layout ---- */
+  header.app {
+    background: var(--navy);
+    color: var(--paper);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  header.app h1 { font-size: 1.15rem; font-weight: 600; margin: 0; letter-spacing: .2px; }
+  header.app .sub { color: var(--gold); font-size: .8rem; font-weight: 500; }
+
+  .ready {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: .8rem; font-weight: 600;
+    padding: 6px 12px; border-radius: 999px;
+    background: rgba(255,255,255,.08); color: rgba(255,255,255,.6);
+    border: 1px solid rgba(255,255,255,.16);
+    transition: all .2s;
+  }
+  .ready.on { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+  .ready .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .7; }
+  .ready.on .dot { opacity: 1; }
+
+  .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 0;
+    align-items: start;
+  }
+  .col { padding: 24px; }
+  .col.form { border-right: 1px solid var(--line); }
+  .col.outline { position: sticky; top: 0; }
+
+  @media (max-width: 860px) {
+    .wrap { grid-template-columns: 1fr; }
+    .col.form { border-right: none; border-bottom: 1px solid var(--line); }
+    .col.outline { position: static; }
+  }
+
+  /* ---- Drafts bar ---- */
+  .drafts {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--line);
+  }
+  .drafts label { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+  .drafts select { min-width: 160px; }
+
+  /* ---- Form ---- */
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: .8rem; font-weight: 600; margin-bottom: 5px; color: var(--navy); }
+  .field .prompt { display: block; font-size: .74rem; font-weight: 400; color: var(--muted); margin-bottom: 6px; line-height: 1.35; }
+
+  input[type="text"], textarea, select {
+    width: 100%;
+    font-family: var(--font);
+    font-size: .9rem;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 9px 11px;
+  }
+  textarea { resize: vertical; min-height: 62px; line-height: 1.45; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--gold); outline-offset: 0; border-color: var(--gold); }
+  select { cursor: pointer; appearance: auto; }
+
+  button {
+    font-family: var(--font); font-size: .82rem; font-weight: 600;
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; border: 1px solid transparent;
+    transition: filter .15s;
+  }
+  button:hover { filter: brightness(.96); }
+  button.primary { background: var(--gold); color: var(--navy); }
+  button.ghost { background: transparent; color: var(--navy); border-color: var(--line); }
+  button.danger { background: transparent; color: var(--blank); border-color: rgba(192,57,43,.35); }
+
+  /* ---- Outline ---- */
+  .outline-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 12px; }
+  .outline-head h2 { margin: 0; font-size: .78rem; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+
+  .doc { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; }
+  .doc h1.title { font-size: 1.4rem; font-weight: 700; color: var(--navy); margin: 0 0 4px; line-height: 1.2; }
+  .doc .meta { font-size: .78rem; color: var(--muted); margin-bottom: 20px; font-weight: 500; }
+
+  .section { margin-bottom: 20px; }
+  .section > .sec-title {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--gold); background: var(--navy); display: inline-block;
+    padding: 3px 10px; border-radius: 5px; margin-bottom: 12px;
+  }
+
+  .beat { display: grid; grid-template-columns: 44px 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .beat:first-of-type { border-top: none; }
+  .beat .ts { font-size: .72rem; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 2px; }
+  .beat .body { min-width: 0; }
+  .beat .n { font-weight: 600; color: var(--navy); }
+  .beat .val { color: var(--ink); }
+  .beat .fixed { color: var(--muted); font-style: italic; }
+  .beat .job { display: block; font-size: .72rem; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+  .beat .const { color: var(--navy); font-weight: 500; }
+  .blank { color: var(--blank); font-weight: 600; }
+
+  .foot { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--navy); color: var(--paper); padding: 10px 18px; border-radius: 8px;
+    font-size: .82rem; font-weight: 500; opacity: 0; pointer-events: none; transition: all .25s;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div>
+    <h1>Video Script Builder</h1>
+    <span class="sub">Solo Ops · belief-shift format</span>
+  </div>
+  <span class="ready" id="ready"><span class="dot"></span><span id="readyText">Not ready</span></span>
+</header>
+
+<div class="wrap">
+  <!-- ============ FORM ============ -->
+  <div class="col form">
+    <div class="drafts">
+      <label for="draftSelect">Draft</label>
+      <select id="draftSelect"><option value="">— unsaved —</option></select>
+      <button class="ghost" id="newDraft" type="button">New</button>
+      <button class="danger" id="deleteDraft" type="button">Delete</button>
+    </div>
+    <div id="formFields"></div>
+  </div>
+
+  <!-- ============ OUTLINE ============ -->
+  <div class="col outline">
+    <div class="outline-head">
+      <h2>Outline</h2>
+      <div style="display:flex;gap:8px;">
+        <button class="ghost" id="downloadBtn" type="button">Download .md</button>
+        <button class="primary" id="copyBtn" type="button">Copy as Markdown</button>
+      </div>
+    </div>
+    <div class="doc" id="doc"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   CONSTANTS — locked format values. Edit here in code, never in the UI.
+   ===================================================================== */
+const CONSTANTS = {
+  enemy:       "Productivity gurus",
+  credibility: "Master's in software engineering (leads); burnout → six weeks off, Dec 2021 (evidence)",
+  audienceTag: "No team / crew of one",
+  umbrella:    "Solo Ops",
+  pivot:       "Tools got cheap, systems didn't",
+  offer:       'Voice-note diagnostic: "What task drained you most this week? Send it, I\'ll map Delete / Delegate / Automate."',
+
+  // The three named problems. `def` is the one-sentence definition shown in beat 6.
+  // NOTE: definitions below are drafted to fit the names — confirm/adjust to the framework doc.
+  concepts: [
+    { name: "Tool Debt",
+      def:  "Every tool you add to save time carries setup, upkeep, and switching cost you never pay down — until the stack itself becomes the job." },
+    { name: "Backwards Automation",
+      def:  "Automating a broken process just makes the mess happen faster; the system has to work by hand before you wire it up." },
+    { name: "Running on Improv",
+      def:  "With nothing documented, every task gets re-invented in the moment — so nothing compounds and nothing can be handed off." },
+  ],
+
+  // Proof stories. FILL summary + number in code (spec: name + one-line summary + number).
+  stories: [
+    { name: "Laura Brazan", summary: "", number: "" },
+    { name: "Annie",        summary: "", number: "" },
+    { name: "Paolo",        summary: "", number: "" },
+    { name: "Craig",        summary: "", number: "" },
+  ],
+};
+
+/* =====================================================================
+   BEAT MAP — Thompson structure. Timestamps target a 12–15 min video.
+   Adjust `ts` to match the framework doc if it differs.
+   ===================================================================== */
+const SECTIONS = [
+  { title: "STORY", beats: [
+    { n: 1, ts: "0:00", label: "Name the advice",
+      job: "Say their advice out loud and grant it works — for someone else." },
+    { n: 2, ts: "0:45", label: "Symptom check",
+      job: "Name the private symptom so they feel seen. End on “Sound familiar?”" },
+    { n: 3, ts: "1:30", label: "Promise",
+      job: "Promise the alternative. Don't over-explain." },
+    { n: 4, ts: "2:00", label: "Credibility",
+      job: "Earn the right to be heard: the credential and the scar." },
+  ]},
+  { title: "PROBLEM", beats: [
+    { n: 5, ts: "3:00", label: "Absolve",
+      job: "Absolve them — the belief was installed, not chosen." },
+    { n: 6, ts: "4:00", label: "Name it",
+      job: "Give the pattern a name they can't unsee." },
+    { n: 7, ts: "5:00", label: "What changed",
+      job: "Show why the old rule expired. The world moved." },
+  ]},
+  { title: "SOLUTION", beats: [
+    { n: 8, ts: "6:30", label: "Proof story",
+      job: "One proof, one number, no method. Curiosity, not instruction." },
+    { n: 9, ts: "9:30", label: "Reversal line",
+      job: "The single inverted line. This is the thumbnail and the LinkedIn post." },
+  ]},
+  { title: "CTA", beats: [
+    { n: 10, ts: "3:45", label: "Mid-roll (already landed after beat 5)",
+      job: "Reminder: the ask already dropped mid-roll, right after beat 5. Keep it under 20s." },
+    { n: 11, ts: "10:30", label: "Split the room",
+      job: "“Most of you will… A few of you will…”" },
+    { n: 12, ts: "11:30", label: "Point at next",
+      job: "Point at the next belief to shift. Leave the door open." },
+  ]},
+];
+
+/* =====================================================================
+   FORM DEFINITION
+   ===================================================================== */
+const FIELDS = [
+  { key: "title",      type: "text",     label: "Working title",   prompt: "" },
+  { key: "concept",    type: "select",   label: "Concept",         prompt: "Which named problem is this video about?", options: "concepts" },
+  { key: "advice",     type: "text",     label: "Their advice",    prompt: "What do the productivity gurus tell people to do? (one sentence)" },
+  { key: "symptom",    type: "textarea", label: "Symptom",         prompt: "Describe the viewer's private experience in second person. End with “Sound familiar?”" },
+  { key: "myFailure",  type: "textarea", label: "My failure",      prompt: "When you did it their way and it broke. One number." },
+  { key: "belief",     type: "text",     label: "The belief",      prompt: "The belief, in the viewer's words." },
+  { key: "origin",     type: "text",     label: "Origin",          prompt: "Where the belief came from (absolve them: it was installed, not chosen)." },
+  { key: "whatChanged",type: "textarea", label: "What changed",    prompt: "Why the world moved.", placeholder: CONSTANTS.pivot },
+  { key: "story",      type: "select",   label: "Proof story",     prompt: "Which proof story?", options: "stories" },
+  { key: "storyNote",  type: "textarea", label: "Story number",    prompt: "The number for this video. No method.", optional: true },
+  { key: "reversal",   type: "text",     label: "Reversal line",   prompt: "The one-line inversion. This is the thumbnail and the LinkedIn post." },
+  { key: "splitRoom",  type: "textarea", label: "Split the room",  prompt: "“Most of you will… A few of you will…”" },
+  { key: "nextVideo",  type: "text",     label: "Next video",      prompt: "Which belief-shift video does this point at?" },
+];
+
+// Fields that must be filled for the "Ready" indicator (storyNote is optional).
+const REQUIRED = FIELDS.filter(f => !f.optional).map(f => f.key);
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+const DRAFTS_KEY = "scripter_drafts";
+let state = blankState();
+let currentKey = "";  // storage key of the loaded draft (title, or "(untitled)")
+
+// Some browsers (notably Safari) block localStorage when the page is opened
+// directly from disk via file://. Detect it, and fall back to an in-session
+// memory store so New/switching never silently loses work.
+let storageOK = (function () {
+  try { localStorage.setItem("__t", "1"); localStorage.removeItem("__t"); return true; }
+  catch (e) { return false; }
+})();
+let memStore = {};   // session-only fallback when storageOK is false
+
+function showStorageWarn() {
+  let w = document.getElementById("storageWarn");
+  if (!w) {
+    w = document.createElement("span");
+    w.id = "storageWarn";
+    w.style.cssText = "font-size:.72rem;color:var(--blank);font-weight:600;flex-basis:100%;line-height:1.35;";
+    document.querySelector(".drafts").appendChild(w);
+  }
+  w.textContent = "⚠ This browser blocked saved storage (opened via file://). Drafts are kept for this session only and won't survive a reload — open in Chrome, or Copy your outline before closing.";
+}
+
+function blankState() {
+  const s = {};
+  FIELDS.forEach(f => s[f.key] = "");
+  return s;
+}
+
+/* ---- Build the form ---- */
+function buildForm() {
+  const root = document.getElementById("formFields");
+  root.innerHTML = "";
+  FIELDS.forEach(f => {
+    const wrap = document.createElement("div");
+    wrap.className = "field";
+    const lab = document.createElement("label");
+    lab.setAttribute("for", "f_" + f.key);
+    lab.textContent = f.label;
+    wrap.appendChild(lab);
+    if (f.prompt) {
+      const p = document.createElement("span");
+      p.className = "prompt";
+      p.textContent = f.prompt;
+      wrap.appendChild(p);
+    }
+    let el;
+    if (f.type === "select") {
+      el = document.createElement("select");
+      const blank = document.createElement("option");
+      blank.value = ""; blank.textContent = "— choose —";
+      el.appendChild(blank);
+      CONSTANTS[f.options].forEach((opt, i) => {
+        const o = document.createElement("option");
+        o.value = String(i);
+        o.textContent = opt.summary ? opt.name + " — " + opt.summary : opt.name;
+        el.appendChild(o);
+      });
+    } else if (f.type === "textarea") {
+      el = document.createElement("textarea");
+      if (f.placeholder) el.placeholder = f.placeholder;
+    } else {
+      el = document.createElement("input");
+      el.type = "text";
+      if (f.placeholder) el.placeholder = f.placeholder;
+    }
+    el.id = "f_" + f.key;
+    el.value = state[f.key] || "";
+    el.addEventListener("input", () => { state[f.key] = el.value; onChange(); });
+    wrap.appendChild(el);
+    root.appendChild(wrap);
+  });
+}
+
+/* ---- Helpers ---- */
+function esc(s) {
+  return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+}
+const has = k => (state[k] || "").trim() !== "";
+function conceptDef() {
+  if (!has("concept")) return null;
+  return CONSTANTS.concepts[Number(state.concept)] || null;
+}
+function selectedStory() {
+  if (!has("story")) return null;
+  return CONSTANTS.stories[Number(state.story)] || null;
+}
+
+/* Story line for beat 8: name + summary + number (per-video note overrides constant number). */
+function storyLine() {
+  const st = selectedStory();
+  if (!st) return null;
+  let s = st.name;
+  if (st.summary) s += " — " + st.summary;
+  const num = (state.storyNote || "").trim() || st.number;
+  if (num) s += " (" + num + ")";
+  return s;
+}
+
+/* ---- Render the outline (HTML, with timestamps + muted reminders) ---- */
+function render() {
+  const doc = document.getElementById("doc");
+  const blank = '<span class="blank">[ ___ ]</span>';
+  const v = (k) => has(k) ? '<span class="val">' + esc(state[k]) + "</span>" : blank;
+
+  const cd = conceptDef();
+  const conceptName = cd ? '<span class="val">' + esc(cd.name) + "</span>" : blank;
+
+  // Content per beat number
+  const beatHTML = {
+    1: 'Name the advice — “' + v("advice") + '” — <span class="fixed">concede it works, “just not for you”</span>',
+    2: 'Symptom check — ' + v("symptom"),
+    3: 'Promise — <span class="fixed">“In this video I\'ll show you what to do instead.”</span>',
+    4: 'Credibility — <span class="const">' + esc(CONSTANTS.credibility) + "</span> + " + v("myFailure"),
+    5: 'Absolve — ' + v("belief") + ' <span class="fixed">· came from:</span> ' + v("origin"),
+    6: 'Name it — ' + conceptName + (cd ? ': <span class="const">' + esc(cd.def) + "</span>" : ""),
+    7: 'What changed — ' + v("whatChanged"),
+    8: 'Proof story — ' + (storyLine() ? '<span class="val">' + esc(storyLine()) + "</span>" : blank) + ' <span class="fixed">(no method)</span>',
+    9: 'Reversal line — “' + v("reversal") + '”',
+    10: 'Mid-roll already landed after beat 5: <span class="const">' + esc(CONSTANTS.offer) + '</span> <span class="fixed">(fixed, max 20s)</span>',
+    11: 'Split the room — ' + v("splitRoom"),
+    12: 'Point at next — ' + v("nextVideo"),
+  };
+
+  let html = "";
+  html += '<h1 class="title">' + (has("title") ? esc(state.title) : blank) + "</h1>";
+  html += '<div class="meta">Umbrella: ' + esc(CONSTANTS.umbrella) + " · Problem: "
+        + (cd ? esc(cd.name) : blank) + " · Audience: crew of one</div>";
+
+  SECTIONS.forEach(sec => {
+    html += '<div class="section"><span class="sec-title">' + sec.title + "</span>";
+    sec.beats.forEach(b => {
+      html += '<div class="beat"><div class="ts">' + b.ts + '</div><div class="body">'
+            + '<span class="n">' + b.n + ".</span> " + beatHTML[b.n]
+            + '<span class="job">' + esc(b.job) + "</span></div></div>";
+    });
+    html += "</div>";
+  });
+  doc.innerHTML = html;
+}
+
+/* ---- Build the clean Markdown (matches the spec template; no timestamps/reminders) ---- */
+function toMarkdown() {
+  const B = "[ ___ ]";
+  const m = (k) => has(k) ? state[k].trim() : B;
+  const cd = conceptDef();
+  const concept = cd ? cd.name : B;
+  const sl = storyLine() || B;
+
+  const L = [];
+  L.push("# " + (has("title") ? state.title.trim() : B));
+  L.push("Umbrella: " + CONSTANTS.umbrella + " · Problem: " + concept + " · Audience: crew of one");
+  L.push("");
+  L.push("## STORY");
+  L.push('1. Name the advice — "' + m("advice") + '" — concede it works, "just not for you"');
+  L.push("2. Symptom check — " + m("symptom"));
+  L.push('3. Promise — "In this video I\'ll show you what to do instead." (fixed)');
+  L.push("4. Credibility — " + CONSTANTS.credibility + " + " + m("myFailure"));
+  L.push("");
+  L.push("## PROBLEM");
+  L.push("5. Absolve — " + m("belief") + " · came from: " + m("origin"));
+  L.push("6. Name it — " + concept + (cd ? ", " + cd.def : ""));
+  L.push("7. What changed — " + m("whatChanged"));
+  L.push("");
+  L.push("## SOLUTION");
+  L.push("8. Proof story — " + sl + " (number, no method)");
+  L.push('9. Reversal line — "' + m("reversal") + '"');
+  L.push("");
+  L.push("## CTA");
+  L.push("10. Mid-roll already happened after beat 5: " + CONSTANTS.offer + " (fixed, max 20s)");
+  L.push("11. Split the room — " + m("splitRoom"));
+  L.push("12. Point at next — " + m("nextVideo"));
+  return L.join("\n");
+}
+
+/* ---- Ready indicator ---- */
+function updateReady() {
+  const done = REQUIRED.every(has);
+  const el = document.getElementById("ready");
+  el.classList.toggle("on", done);
+  document.getElementById("readyText").textContent = done ? "Ready" : "Not ready";
+}
+
+/* =====================================================================
+   DRAFTS (localStorage, keyed by title)
+   ===================================================================== */
+function loadDrafts() {
+  if (!storageOK) return { ...memStore };
+  try { return JSON.parse(localStorage.getItem(DRAFTS_KEY)) || {}; }
+  catch (e) { return {}; }
+}
+function saveDrafts(d) {
+  if (!storageOK) { memStore = { ...d }; return; }
+  try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(d)); }
+  catch (e) { storageOK = false; memStore = { ...d }; showStorageWarn(); }
+}
+function autosave() {
+  const title = (state.title || "").trim();
+  const key = title || "(untitled)";  // never drop work just because there's no title yet
+  const drafts = loadDrafts();
+  if (currentKey && currentKey !== key && drafts[currentKey]) {
+    delete drafts[currentKey];        // title changed -> rename/migrate in place
+  }
+  drafts[key] = { ...state };
+  currentKey = key;
+  saveDrafts(drafts);
+  refreshDraftList();
+}
+function refreshDraftList() {
+  const sel = document.getElementById("draftSelect");
+  const drafts = loadDrafts();
+  const names = Object.keys(drafts).sort((a, b) => a.localeCompare(b));
+  sel.innerHTML = '<option value="">' + (currentKey ? currentKey : "— unsaved —") + "</option>";
+  names.forEach(name => {
+    if (name === currentKey) return;
+    const o = document.createElement("option");
+    o.value = name; o.textContent = name;
+    sel.appendChild(o);
+  });
+  sel.value = "";
+}
+function loadDraft(name) {
+  const drafts = loadDrafts();
+  if (!drafts[name]) return;
+  state = { ...blankState(), ...drafts[name] };
+  currentKey = name;
+  buildForm(); onChange(); refreshDraftList();
+}
+function newDraft() {
+  const prev = currentKey;
+  const hadContent = (state.title || "").trim() !== "" || REQUIRED.some(has);
+  state = blankState();
+  currentKey = "";
+  buildForm(); render(); updateReady(); refreshDraftList();
+  if (hadContent && prev) toast('Kept "' + prev + '" — reopen it from the Draft menu');
+}
+function deleteDraft() {
+  if (!currentKey) { toast("Nothing saved to delete"); return; }
+  const drafts = loadDrafts();
+  delete drafts[currentKey];
+  saveDrafts(drafts);
+  toast("Deleted “" + currentKey + "”");
+  newDraft();
+}
+
+/* ---- Change pipeline ---- */
+function onChange() { render(); updateReady(); autosave(); }
+
+/* ---- Toast ---- */
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+/* =====================================================================
+   WIRE UP
+   ===================================================================== */
+document.getElementById("copyBtn").addEventListener("click", () => copyText(toMarkdown()));
+
+document.getElementById("downloadBtn").addEventListener("click", () => {
+  const md = toMarkdown();
+  const base = (state.title || "").trim().toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "video-script";
+  const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = base + ".md";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast("Downloaded " + base + ".md");
+});
+
+function copyText(md) {
+  // navigator.clipboard exists only in a secure context (https/localhost).
+  // On file:// it's undefined, so guard before touching it — otherwise it
+  // throws synchronously and never reaches the fallback below.
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      navigator.clipboard.writeText(md).then(
+        () => toast("Outline copied as Markdown"),
+        () => legacyCopy(md)
+      );
+      return;
+    } catch (e) { /* fall through to legacy path */ }
+  }
+  legacyCopy(md);
+}
+function legacyCopy(md) {
+  const ta = document.createElement("textarea");
+  ta.value = md;
+  ta.style.cssText = "position:fixed;top:-1000px;left:-1000px;opacity:0;";
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) {}
+  ta.remove();
+  toast(ok ? "Outline copied as Markdown" : "Copy failed — press ⌘C to copy");
+}
+document.getElementById("newDraft").addEventListener("click", newDraft);
+document.getElementById("deleteDraft").addEventListener("click", deleteDraft);
+document.getElementById("draftSelect").addEventListener("change", (e) => {
+  if (e.target.value) loadDraft(e.target.value);
+});
+
+buildForm();
+render();
+updateReady();
+refreshDraftList();
+if (!storageOK) showStorageWarn();
+</script>
+</body>
+</html>
