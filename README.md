@@ -27,7 +27,9 @@ works via the modern API, and drafts persist in `localStorage` for real.
 3. Under **Build and deployment**, set **Source** to **Deploy from a branch**.
 4. Choose your branch (e.g. `main`) and folder **/ (root)**, then **Save**.
 5. Wait ~1 minute, then open:
-   `https://<your-username>.github.io/<repo>/Files/Web/video-script-builder/`
+   `https://<your-username>.github.io/<repo>/`
+
+   For this repo that is: <https://jcasabona.github.io/scripter/>
 
 Notes:
 - **Public repo = public tool.** Anyone with the URL can open it and view source,
