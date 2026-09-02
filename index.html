@@ -232,6 +232,8 @@ const SECTIONS = [
   { title: "PROBLEM", beats: [
     { n: 5, ts: "3:00", label: "Absolve",
       job: "Absolve them — the belief was installed, not chosen." },
+    { n: "5a", ts: "3:30", label: "Mid-roll CTA",
+      job: "Drop the ask here, in context, while trust is highest. Keep it under 20s." },
     { n: 6, ts: "4:00", label: "Name it",
       job: "Give the pattern a name they can't unsee." },
     { n: 7, ts: "5:00", label: "What changed",
@@ -244,8 +246,8 @@ const SECTIONS = [
       job: "The single inverted line. This is the thumbnail and the LinkedIn post." },
   ]},
   { title: "CTA", beats: [
-    { n: 10, ts: "3:45", label: "Mid-roll (already landed after beat 5)",
-      job: "Reminder: the ask already dropped mid-roll, right after beat 5. Keep it under 20s." },
+    { n: 10, ts: "12:00", label: "Offer again",
+      job: "Restate the offer as the closing ask." },
     { n: 11, ts: "10:30", label: "Split the room",
       job: "“Most of you will… A few of you will…”" },
     { n: 12, ts: "11:30", label: "Point at next",
@@ -394,11 +396,12 @@ function render() {
     3: 'Promise — <span class="fixed">“In this video I\'ll show you what to do instead.”</span>',
     4: 'Credibility — <span class="const">' + esc(CONSTANTS.credibility) + "</span> + " + v("myFailure"),
     5: 'Absolve — ' + v("belief") + ' <span class="fixed">· came from:</span> ' + v("origin"),
+    "5a": 'Mid-roll CTA — <span class="const">' + esc(CONSTANTS.offer) + '</span> <span class="fixed">(max 20s)</span>',
     6: 'Name it — ' + conceptName + (cd ? ': <span class="const">' + esc(cd.def) + "</span>" : ""),
     7: 'What changed — ' + v("whatChanged"),
     8: 'Proof story — ' + (storyLine() ? '<span class="val">' + esc(storyLine()) + "</span>" : blank) + ' <span class="fixed">(no method)</span>',
     9: 'Reversal line — “' + v("reversal") + '”',
-    10: 'Mid-roll already landed after beat 5: <span class="const">' + esc(CONSTANTS.offer) + '</span> <span class="fixed">(fixed, max 20s)</span>',
+    10: 'Offer again — <span class="const">' + esc(CONSTANTS.offer) + '</span>',
     11: 'Split the room — ' + v("splitRoom"),
     12: 'Point at next — ' + v("nextVideo"),
   };
@@ -440,6 +443,7 @@ function toMarkdown() {
   L.push("");
   L.push("## PROBLEM");
   L.push("5. Absolve — " + m("belief") + " · came from: " + m("origin"));
+  L.push("5a. Mid-roll CTA — " + CONSTANTS.offer + " (max 20s)");
   L.push("6. Name it — " + concept + (cd ? ", " + cd.def : ""));
   L.push("7. What changed — " + m("whatChanged"));
   L.push("");
@@ -448,7 +452,7 @@ function toMarkdown() {
   L.push('9. Reversal line — "' + m("reversal") + '"');
   L.push("");
   L.push("## CTA");
-  L.push("10. Mid-roll already happened after beat 5: " + CONSTANTS.offer + " (fixed, max 20s)");
+  L.push("10. Offer again — " + CONSTANTS.offer);
   L.push("11. Split the room — " + m("splitRoom"));
   L.push("12. Point at next — " + m("nextVideo"));
   return L.join("\n");
